@@ -1,0 +1,1471 @@
+=== Directory Tree ===
+
+📁 core
+├── constants
+├── di
+│   └── injection_container.dart
+├── errors
+│   ├── error_handler.dart
+│   ├── exceptions.dart
+│   ├── failures.dart
+│   └── result.dart
+├── helpers
+│   ├── file_upload_helper.dart
+│   ├── location_helper.dart
+│   └── secure_storage_helper.dart
+├── network
+│   ├── api_constants.dart
+│   ├── api_interceptors.dart
+│   ├── api_service.dart
+│   └── dio_factory.dart
+├── routing
+│   ├── app_router.dart
+│   └── routes.dart
+├── theme
+│   ├── app_colors.dart
+│   ├── app_text_styles.dart
+│   └── app_theme.dart
+├── usecase
+│   └── usecase.dart
+├── utils
+└── widgets
+    ├── custom_button.dart
+    ├── custom_text_field.dart
+    ├── empty_state_view.dart
+    ├── error_view.dart
+    └── loading_indicator.dart
+
+=========================================
+
+--- FILE: di/injection_container.dart | 2026-09-11 03:28 ---
+import 'package:get_it/get_it.dart';
+
+
+import '../../features/auth/data/datasources/auth_remote_data_source.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/domain/usecases/login_usecase.dart';
+import '../../features/auth/domain/usecases/register_client_usecase.dart';
+import '../../features/auth/domain/usecases/register_merchant_usecase.dart';
+import '../../features/auth/domain/usecases/resend_otp_usecase.dart';
+import '../../features/auth/domain/usecases/verify_otp_usecase.dart';
+import '../../features/auth/presentation/admin/cubit/admin_auth_cubit.dart';
+import '../../features/auth/presentation/client/cubit/auth_cubit.dart';
+import '../../features/auth/presentation/shared/cubit/auth_ui_cubit.dart';
+
+
+import '../../features/categories/data/datasources/categories_remote_data_source.dart';
+import '../../features/categories/data/repositories/categories_repository_impl.dart';
+import '../../features/categories/domain/repositories/categories_repository.dart';
+import '../../features/categories/domain/usecases/create_category_usecase.dart';
+import '../../features/categories/domain/usecases/delete_category_usecase.dart';
+import '../../features/categories/domain/usecases/get_categories_usecase.dart';
+import '../../features/categories/domain/usecases/update_category_usecase.dart';
+import '../../features/categories/presentation/client/cubit/categories_cubit.dart';
+
+
+import '../../features/products/data/datasources/products_remote_data_source.dart';
+import '../../features/products/data/repositories/products_repository_impl.dart';
+import '../../features/products/domain/repositories/products_repository.dart';
+import '../../features/products/domain/usecases/create_product_usecase.dart';
+import '../../features/products/domain/usecases/delete_product_usecase.dart';
+import '../../features/products/domain/usecases/get_product_details_usecase.dart';
+import '../../features/products/domain/usecases/get_products_usecase.dart';
+import '../../features/products/domain/usecases/update_product_usecase.dart';
+import '../../features/products/presentation/client/cubit/products_cubit.dart';
+
+
+import '../../features/favorites/data/datasources/favorites_remote_data_source.dart';
+import '../../features/favorites/data/repositories/favorites_repository_impl.dart';
+import '../../features/favorites/domain/repositories/favorites_repository.dart';
+import '../../features/favorites/presentation/client/cubit/favorites_cubit.dart';
+
+
+import '../../features/cart/data/datasources/cart_remote_data_source.dart';
+import '../../features/cart/data/repositories/cart_repository_impl.dart';
+import '../../features/cart/domain/repositories/cart_repository.dart';
+import '../../features/cart/presentation/client/cubit/cart_cubit.dart';
+
+
+import '../../features/checkout/data/datasources/checkout_remote_data_source.dart';
+import '../../features/checkout/data/repositories/checkout_repository_impl.dart';
+import '../../features/checkout/domain/repositories/checkout_repository.dart';
+import '../../features/checkout/domain/usecases/create_order_usecase.dart';
+import '../../features/checkout/domain/usecases/pay_order_usecase.dart';
+import '../../features/checkout/domain/usecases/process_payment_usecase.dart';
+import '../../features/checkout/presentation/client/cubit/checkout_cubit.dart';
+
+
+import '../../features/orders/data/datasources/orders_remote_data_source.dart';
+import '../../features/orders/data/repositories/orders_repository_impl.dart';
+import '../../features/orders/domain/repositories/orders_repository.dart';
+import '../../features/orders/domain/usecases/get_order_details_usecase.dart';
+import '../../features/orders/domain/usecases/get_orders_usecase.dart';
+import '../../features/orders/presentation/admin/cubit/admin_order_cubit.dart';
+import '../../features/orders/presentation/client/cubit/client_order_cubit.dart';
+
+
+import '../../features/profile/data/datasources/profile_remote_data_source.dart';
+import '../../features/profile/data/repositories/profile_repository_impl.dart';
+import '../../features/profile/domain/repositories/profile_repository.dart';
+import '../../features/profile/domain/usecases/get_profile_usecase.dart';
+import '../../features/profile/domain/usecases/update_admin_profile_usecase.dart';
+import '../../features/profile/domain/usecases/update_client_profile_usecase.dart';
+import '../../features/profile/presentation/admin/cubit/admin_profile_cubit.dart';
+import '../../features/profile/presentation/client/cubit/client_profile_cubit.dart';
+
+
+import '../../features/home/presentation/admin/cubit/admin_home_cubit.dart';
+
+final sl = GetIt.instance;
+
+Future<void> init() async {
+  
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton(() => LoginUseCase(sl()));
+  sl.registerLazySingleton(() => RegisterClientUseCase(sl()));
+  sl.registerLazySingleton(() => RegisterMerchantUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyOtpUseCase(sl()));
+  sl.registerLazySingleton(() => ResendOtpUseCase(sl()));
+
+  sl.registerFactory<AuthUiCubit>(() => AuthUiCubit());
+  sl.registerFactory<ClientAuthCubit>(
+    () => ClientAuthCubit(
+      loginUseCase: sl(),
+      registerClientUseCase: sl(),
+      verifyOtpUseCase: sl(),
+      resendOtpUseCase: sl(),
+    ),
+  );
+  sl.registerFactory<AdminAuthCubit>(
+    () => AdminAuthCubit(
+      loginUseCase: sl(),
+      registerMerchantUseCase: sl(),
+      verifyOtpUseCase: sl(),
+      resendOtpUseCase: sl(),
+    ),
+  );
+
+  
+  sl.registerLazySingleton<CategoriesRemoteDataSource>(
+    () => CategoriesRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<CategoriesRepository>(
+    () => CategoriesRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton(() => GetCategoriesUseCase(sl()));
+  sl.registerLazySingleton(() => CreateCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteCategoryUseCase(sl()));
+
+  sl.registerFactory<CategoriesCubit>(
+    () => CategoriesCubit(
+      getCategoriesUseCase: sl(),
+      createCategoryUseCase: sl(),
+      updateCategoryUseCase: sl(),
+      deleteCategoryUseCase: sl(),
+    ),
+  );
+
+  
+  sl.registerLazySingleton<ProductsRemoteDataSource>(
+    () => ProductsRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<ProductsRepository>(
+    () => ProductsRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton(() => GetProductsUseCase(sl()));
+  sl.registerLazySingleton(() => GetProductDetailsUseCase(sl()));
+  sl.registerLazySingleton(() => CreateProductUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateProductUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteProductUseCase(sl()));
+
+  sl.registerFactory<ProductsCubit>(
+    () => ProductsCubit(
+      getProductsUseCase: sl(),
+      getProductDetailsUseCase: sl(),
+      createProductUseCase: sl(),
+      updateProductUseCase: sl(),
+      deleteProductUseCase: sl(),
+    ),
+  );
+
+  
+  sl.registerLazySingleton<FavoritesRemoteDataSource>(
+    () => FavoritesRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<FavoritesRepository>(
+    () => FavoritesRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerFactory<FavoritesCubit>(
+    () => FavoritesCubit(favoritesRepository: sl()),
+  );
+
+  
+  sl.registerLazySingleton<CartRemoteDataSource>(
+    () => CartRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<CartRepository>(
+    () => CartRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerFactory<CartCubit>(() => CartCubit(cartRepository: sl()));
+
+  
+  sl.registerLazySingleton<CheckoutRemoteDataSource>(
+    () => CheckoutRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<CheckoutRepository>(
+    () => CheckoutRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton(() => CreateOrderUseCase(sl()));
+  sl.registerLazySingleton(() => PayOrderUseCase(sl()));
+  sl.registerLazySingleton(() => ProcessPaymentUseCase(sl()));
+
+  sl.registerFactory<CheckoutCubit>(
+    () => CheckoutCubit(createOrderUseCase: sl(), payOrderUseCase: sl()),
+  );
+
+  
+  sl.registerLazySingleton<OrdersRemoteDataSource>(
+    () => OrdersRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<OrdersRepository>(
+    () => OrdersRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton(() => GetOrdersUseCase(sl()));
+  sl.registerLazySingleton(() => GetOrderDetailsUseCase(sl()));
+
+  sl.registerFactory<AdminOrderCubit>(
+    () => AdminOrderCubit(getOrdersUseCase: sl(), getOrderDetailsUseCase: sl()),
+  );
+  sl.registerFactory<ClientOrderCubit>(
+    () =>
+        ClientOrderCubit(getOrdersUseCase: sl(), getOrderDetailsUseCase: sl()),
+  );
+
+  
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton(() => GetProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateClientProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateAdminProfileUseCase(sl()));
+
+  sl.registerFactory<ClientProfileCubit>(
+    () => ClientProfileCubit(
+      getProfileUseCase: sl(),
+      updateClientProfileUseCase: sl(),
+    ),
+  );
+  sl.registerFactory<AdminProfileCubit>(
+    () => AdminProfileCubit(
+      getProfileUseCase: sl(),
+      updateAdminProfileUseCase: sl(),
+    ),
+  );
+
+  
+  sl.registerFactory<AdminHomeCubit>(
+    () => AdminHomeCubit(getCategoriesUseCase: sl(), getProductsUseCase: sl()),
+  );
+}
+
+-----------------------------------------
+
+--- FILE: errors/error_handler.dart | 2026-09-01 14:24 ---
+import 'package:dio/dio.dart';
+import 'failures.dart';
+
+class ErrorHandler {
+  static Failure handle(dynamic error) {
+    if (error is DioException) {
+      return _handleDioError(error);
+    }
+    return ServerFailure(message: error.toString());
+  }
+
+  static Failure _handleDioError(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return const ServerFailure(message: 'Connection timed out with server');
+      case DioExceptionType.badResponse:
+        final statusCode = error.response?.statusCode;
+        final responseData = error.response?.data;
+        String message = 'Something went wrong';
+        
+        if (responseData is Map<String, dynamic> && responseData.containsKey('message')) {
+          message = responseData['message'].toString();
+        } else if (responseData is String) {
+          message = responseData;
+        }
+
+        if (statusCode == 401 || statusCode == 403) {
+          return UnauthorizedFailure(message: message);
+        }
+        return ServerFailure(message: message, statusCode: statusCode);
+      case DioExceptionType.connectionError:
+        return const NetworkFailure();
+      default:
+        return const ServerFailure(message: 'Unexpected network error occurred');
+    }
+  }
+}
+-----------------------------------------
+
+--- FILE: errors/exceptions.dart | 2026-09-11 02:13 ---
+class ServerException implements Exception {
+  final String message;
+  final int? statusCode;
+
+  const ServerException({required this.message, this.statusCode});
+
+  @override
+  String toString() => 'ServerException(message: $message, code: $statusCode)';
+}
+
+class NetworkException implements Exception {
+  final String message;
+  const NetworkException({this.message = 'No internet connection'});
+
+  @override
+  String toString() => 'NetworkException(message: $message)';
+}
+
+class UnauthorizedException implements Exception {
+  final String message;
+  const UnauthorizedException({
+    this.message = 'Session expired or invalid credentials',
+  });
+
+  @override
+  String toString() => 'UnauthorizedException(message: $message)';
+}
+
+-----------------------------------------
+
+--- FILE: errors/failures.dart | 2026-09-01 14:24 ---
+abstract class Failure {
+  final String message;
+  final int? statusCode;
+
+  const Failure({required this.message, this.statusCode});
+}
+
+class ServerFailure extends Failure {
+  const ServerFailure({required super.message, super.statusCode});
+}
+
+class CacheFailure extends Failure {
+  const CacheFailure({required super.message});
+}
+
+class NetworkFailure extends Failure {
+  const NetworkFailure({super.message = 'No internet connection. Please check your network.'});
+}
+
+class UnauthorizedFailure extends Failure {
+  const UnauthorizedFailure({super.message = 'Session expired. Please login again.'});
+}
+-----------------------------------------
+
+--- FILE: errors/result.dart | 2026-09-11 02:06 ---
+import 'package:easy_shop/core/errors/failures.dart';
+
+sealed class Result<T> {
+  const Result();
+}
+
+class Success<T> extends Result<T> {
+  final T data;
+  const Success(this.data);
+}
+
+class Err<T> extends Result<T> {
+  final Failure failure;
+  const Err(this.failure);
+}
+
+-----------------------------------------
+
+--- FILE: helpers/file_upload_helper.dart | 2026-09-10 19:16 ---
+
+
+import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
+
+class FileUploadHelper {
+  FileUploadHelper._();
+
+  static Future<MultipartFile?> toMultipart(String? filePath) async {
+    if (filePath == null || filePath.trim().isEmpty) return null;
+
+    final file = File(filePath);
+    if (!await file.exists()) return null;
+
+    final ext = filePath.split('.').last.toLowerCase();
+    String mimeSubtype;
+    switch (ext) {
+      case 'png':
+        mimeSubtype = 'png';
+        break;
+      case 'webp':
+        mimeSubtype = 'webp';
+        break;
+      case 'pdf':
+        return MultipartFile.fromFile(
+          file.path,
+          filename: file.path.split(Platform.pathSeparator).last,
+          contentType: MediaType('application', 'pdf'),
+        );
+      default:
+        mimeSubtype = 'jpeg';
+    }
+
+    return MultipartFile.fromFile(
+      file.path,
+      filename: file.path.split(Platform.pathSeparator).last,
+      contentType: MediaType('image', mimeSubtype),
+    );
+  }
+}
+
+-----------------------------------------
+
+--- FILE: helpers/location_helper.dart | 2026-09-10 22:26 ---
+import 'dart:async';
+import 'package:dio/dio.dart';
+import 'package:geolocator/geolocator.dart';
+
+class LocationDetails {
+  final double latitude;
+  final double longitude;
+  final String cityName;
+
+  LocationDetails({
+    required this.latitude,
+    required this.longitude,
+    required this.cityName,
+  });
+}
+
+class LocationHelper {
+  static Future<Position?> getCurrentPosition() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        await Geolocator.openLocationSettings();
+        serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) return null;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return null;
+      }
+
+      if (permission == LocationPermission.deniedForever) return null;
+
+      Position? lastKnown = await Geolocator.getLastKnownPosition();
+      if (lastKnown != null) {
+        return lastKnown;
+      }
+
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 7),
+        ),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<LocationDetails?> getCurrentCityAndLocation() async {
+    try {
+      final position = await getCurrentPosition();
+      if (position == null) return null;
+
+      String city = 'Current Location';
+
+      try {
+        final dio = Dio(
+          BaseOptions(
+            connectTimeout: const Duration(seconds: 5),
+            receiveTimeout: const Duration(seconds: 5),
+          ),
+        );
+
+        final response = await dio.get(
+          'https://nominatim.openstreetmap.org/reverse',
+          queryParameters: {
+            'format': 'json',
+            'lat': position.latitude,
+            'lon': position.longitude,
+            'zoom': 10,
+            'addressdetails': 1,
+            'accept-language': 'ar,en',
+          },
+          options: Options(
+            headers: {'User-Agent': 'EasyShopApp_Flutter_Client/1.0'},
+          ),
+        );
+
+        if (response.statusCode == 200 && response.data != null) {
+          final address = response.data['address'] as Map<String, dynamic>?;
+          if (address != null) {
+            city =
+                address['city'] ??
+                address['town'] ??
+                address['state'] ??
+                address['village'] ??
+                address['county'] ??
+                'Egypt';
+          }
+        }
+      } catch (_) {
+        city =
+            'Lat: ${position.latitude.toStringAsFixed(3)}, Lng: ${position.longitude.toStringAsFixed(3)}';
+      }
+
+      return LocationDetails(
+        latitude: position.latitude,
+        longitude: position.longitude,
+        cityName: city,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+-----------------------------------------
+
+--- FILE: helpers/secure_storage_helper.dart | 2026-09-10 22:54 ---
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class SecureStorageHelper {
+  static const FlutterSecureStorage _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(resetOnError: true),
+  );
+
+  static const String _tokenKey = 'USER_AUTH_TOKEN';
+  static const String _userRoleKey = 'USER_ROLE';
+  static const String _onboardingKey = 'HAS_SEEN_ONBOARDING';
+
+  static Future<void> saveToken(String token) async {
+    await _storage.write(key: _tokenKey, value: token);
+  }
+
+  static Future<String?> getToken() async {
+    return await _storage.read(key: _tokenKey);
+  }
+
+  static Future<void> saveUserRole(String role) async {
+    await _storage.write(key: _userRoleKey, value: role);
+  }
+
+  static Future<String?> getUserRole() async {
+    return await _storage.read(key: _userRoleKey);
+  }
+
+  static Future<void> logout() async {
+    await _storage.delete(key: _tokenKey);
+    await _storage.delete(key: _userRoleKey);
+  }
+
+  static Future<void> clearAll() async {
+    final hasSeen = await hasSeenOnboarding();
+    await _storage.deleteAll();
+    if (hasSeen) {
+      await setOnboardingSeen();
+    }
+  }
+
+  static Future<void> setOnboardingSeen() async {
+    await _storage.write(key: _onboardingKey, value: 'true');
+  }
+
+  static Future<bool> hasSeenOnboarding() async {
+    final value = await _storage.read(key: _onboardingKey);
+    return value == 'true';
+  }
+}
+
+-----------------------------------------
+
+--- FILE: network/api_constants.dart | 2026-09-10 20:32 ---
+class ApiConstants {
+  static const String baseUrl = 'https://easylearn.devawy.com/api/';
+
+  
+  static const String apiKey =
+      'wQ9KxY7nP2LrA5FmD8TsV1BhE6JzNc4UyRg3KqXpWoMf7CdSaHt9LeIk2On8GbYu';
+
+  
+  
+  static const String adminLogin = 'admin/login';
+  static const String adminRegister = 'admin/register';
+  static const String adminLogout = 'admin/logout';
+  static const String adminVerifyOtp = 'admin/otp/verify';
+  static const String adminResendOtp = 'admin/otp/resend';
+
+  
+  static const String adminProfile = 'admin/profile';
+  static const String adminUpdateProfile = 'admin/profile/update';
+
+  
+  static const String adminCategories = 'admin/categories';
+  static const String adminStoreCategory = 'admin/categories/store';
+  static String adminUpdateCategory(String slug) =>
+      'admin/categories/update/$slug';
+  static String adminDeleteCategory(String slug) =>
+      'admin/categories/destroy/$slug';
+
+  
+  static const String adminProducts = 'admin/products';
+  static const String adminStoreProduct = 'admin/products/store';
+  static String adminProductDetails(String slug) => 'admin/products/show/$slug';
+  static String adminUpdateProduct(String slug) =>
+      'admin/products/update/$slug';
+  static String adminDeleteProduct(String slug) =>
+      'admin/products/destroy/$slug';
+
+  
+  static const String adminOrders = 'admin/orders';
+  static String adminOrderDetails(String code) => 'admin/orders/show/$code';
+
+  
+  
+  static const String clientLogin = 'client/login';
+  static const String clientRegister = 'client/register';
+  static const String clientLogout = 'client/logout';
+  static const String clientVerifyOtp = 'client/otp/verify';
+  static const String clientResendOtp = 'client/otp/resend';
+
+  
+  static const String clientProfile = 'client/profile';
+  static const String clientUpdateProfile = 'client/profile/update';
+
+  
+  static const String clientCategories = 'client/categories';
+  static const String clientProducts = 'client/products';
+  static String clientProductDetails(String slug) =>
+      'client/products/show/$slug';
+
+  
+  static const String clientFavorites = 'client/favorites';
+  static const String clientStoreFavorite = 'client/favorites/store';
+  static const String clientDeleteFavorite = 'client/favorites/destroy';
+
+  
+  static const String clientCarts = 'client/carts';
+  static const String clientStoreCart = 'client/carts/store';
+  static const String clientDeleteCart = 'client/carts/destroy';
+
+  
+  static const String clientOrders = 'client/orders';
+  static const String clientStoreOrder = 'client/orders/store';
+  static String clientOrderDetails(String code) => 'client/orders/show/$code';
+  static String clientPayOrder(String code) => 'client/orders/pay/$code';
+
+  
+  static const String clientProcessPayment = 'client/payments/process';
+}
+
+-----------------------------------------
+
+--- FILE: network/api_interceptors.dart | 2026-09-10 22:11 ---
+import 'package:dio/dio.dart';
+import '../helpers/secure_storage_helper.dart';
+import 'api_constants.dart';
+
+class AppInterceptors extends Interceptor {
+  @override
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    options.headers['x-api-key'] = ApiConstants.apiKey;
+
+    final token = await SecureStorageHelper.getToken();
+    if (token != null && token.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
+
+    options.headers['Accept'] = 'application/json';
+
+    if (options.data is! FormData) {
+      options.headers['Content-Type'] = 'application/json';
+    }
+
+    return handler.next(options);
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401) {
+      await SecureStorageHelper.logout();
+    }
+    return handler.next(err);
+  }
+}
+
+-----------------------------------------
+
+--- FILE: network/api_service.dart | 2026-09-11 02:13 ---
+import 'package:dio/dio.dart';
+import '../errors/exceptions.dart';
+import 'dio_factory.dart';
+
+abstract class ApiService {
+  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters});
+  Future<dynamic> post(String path, {dynamic data});
+  Future<dynamic> put(String path, {dynamic data});
+  Future<dynamic> delete(String path, {dynamic data});
+}
+
+class DioApiService implements ApiService {
+  final Dio _dio = DioFactory.getDio();
+
+  @override
+  Future<dynamic> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      final response = await _dio.get(path, queryParameters: queryParameters);
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<dynamic> post(String path, {dynamic data}) async {
+    try {
+      final response = await _dio.post(path, data: data);
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<dynamic> put(String path, {dynamic data}) async {
+    try {
+      final response = await _dio.put(path, data: data);
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<dynamic> delete(String path, {dynamic data}) async {
+    try {
+      final response = await _dio.delete(path, data: data);
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  Exception _handleDioError(DioException error) {
+    final statusCode = error.response?.statusCode;
+    final responseData = error.response?.data;
+    String message = 'Unexpected error occurred';
+
+    if (responseData is Map<String, dynamic> &&
+        responseData.containsKey('message')) {
+      message = responseData['message'].toString();
+    } else if (responseData is String) {
+      message = responseData;
+    }
+
+    if (statusCode == 401 || statusCode == 403) {
+      return UnauthorizedException(message: message);
+    }
+    if (error.type == DioExceptionType.connectionError ||
+        error.type == DioExceptionType.connectionTimeout) {
+      return const NetworkException();
+    }
+    return ServerException(message: message, statusCode: statusCode);
+  }
+}
+
+-----------------------------------------
+
+--- FILE: network/dio_factory.dart | 2026-09-11 00:21 ---
+import 'package:dio/dio.dart';
+import 'api_constants.dart';
+import 'api_interceptors.dart';
+
+class DioFactory {
+  static Dio? _dio;
+
+  static Dio getDio() {
+    Duration timeOut = const Duration(seconds: 30);
+
+    if (_dio == null) {
+      _dio = Dio();
+      _dio!
+        ..options.baseUrl = ApiConstants.baseUrl
+        ..options.connectTimeout = timeOut
+        ..options.receiveTimeout = timeOut
+          ..options.headers['Connection'] = 'close' 
+        ..interceptors.add(AppInterceptors())
+        ..interceptors.add(
+          LogInterceptor(
+            requestBody: true,
+            responseBody: true,
+            requestHeader: true,
+          ),
+        );
+      return _dio!;
+    } else {
+      return _dio!;
+    }
+  }
+}
+-----------------------------------------
+
+--- FILE: routing/app_router.dart | 2026-09-10 23:09 ---
+import 'package:easy_shop/core/routing/routes.dart';
+import 'package:easy_shop/features/auth/presentation/admin/cubit/admin_auth_cubit.dart';
+import 'package:easy_shop/features/auth/presentation/admin/screens/admin_login_screen.dart';
+import 'package:easy_shop/features/auth/presentation/admin/screens/admin_register_screen.dart';
+import 'package:easy_shop/features/auth/presentation/client/cubit/auth_cubit.dart';
+import 'package:easy_shop/features/auth/presentation/client/screens/client_login_screen.dart';
+import 'package:easy_shop/features/auth/presentation/client/screens/client_register_screen.dart';
+import 'package:easy_shop/features/auth/presentation/shared/cubit/auth_ui_cubit.dart';
+import 'package:easy_shop/features/auth/presentation/shared/screens/otp_verification_screen.dart';
+import 'package:easy_shop/features/auth/presentation/shared/screens/splash_screen.dart';
+import 'package:easy_shop/features/auth/presentation/shared/screens/welcome_success_screen.dart';
+import 'package:easy_shop/features/cart/presentation/client/cubit/cart_cubit.dart';
+import 'package:easy_shop/features/cart/presentation/client/screens/cart_screen.dart';
+import 'package:easy_shop/features/checkout/presentation/client/screens/checkout_screen.dart';
+import 'package:easy_shop/features/home/presentation/admin/cubit/admin_home_cubit.dart';
+import 'package:easy_shop/features/home/presentation/admin/screens/admin_main_navigation_screen.dart';
+import 'package:easy_shop/features/home/presentation/client/cubit/home_cubit.dart';
+import 'package:easy_shop/features/home/presentation/client/screens/main_navigation_screen.dart';
+import 'package:easy_shop/features/orders/presentation/admin/cubit/admin_order_cubit.dart';
+import 'package:easy_shop/features/orders/presentation/client/cubit/client_order_cubit.dart';
+import 'package:easy_shop/features/products/presentation/client/cubit/products_cubit.dart';
+import 'package:easy_shop/features/products/presentation/client/screens/product_details_screen.dart';
+import 'package:easy_shop/features/profile/presentation/admin/cubit/admin_profile_cubit.dart';
+import 'package:easy_shop/features/profile/presentation/client/cubit/client_profile_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../di/injection_container.dart';
+
+class AppRouter {
+  Route? generateRoute(RouteSettings settings) {
+    final arguments = settings.arguments;
+
+    switch (settings.name) {
+      case Routes.splash:
+        return MaterialPageRoute(builder: (_) => const SplashScreen());
+
+      case Routes.clientLogin:
+        return MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => sl<ClientAuthCubit>()),
+              BlocProvider(create: (_) => sl<AuthUiCubit>()),
+            ],
+            child: const ClientLoginScreen(),
+          ),
+        );
+
+      case Routes.clientRegister:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<ClientAuthCubit>(),
+            child: const RegisterScreen(),
+          ),
+        );
+
+      case Routes.adminLogin:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<AdminAuthCubit>(),
+            child: const AdminLoginScreen(),
+          ),
+        );
+
+      case Routes.adminRegister:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<AdminAuthCubit>(),
+            child: const AdminRegisterScreen(),
+          ),
+        );
+
+      case Routes.otpVerification:
+        final args = arguments as Map<String, dynamic>? ?? {};
+        final role = args['role'] ?? 'client';
+        return MaterialPageRoute(
+          builder: (_) =>
+              OtpVerificationScreen(email: args['email'] ?? '', role: role),
+        );
+
+      case Routes.welcomeSuccess:
+        final role = arguments as String? ?? 'client';
+        return MaterialPageRoute(
+          builder: (_) => WelcomeSuccessScreen(role: role),
+        );
+
+      case Routes.clientMainNav:
+        return MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => sl<ClientHomeCubit>()..fetchHomeData(),
+              ),
+              BlocProvider(create: (_) => sl<CartCubit>()),
+              BlocProvider(create: (_) => sl<ClientOrderCubit>()),
+              BlocProvider(
+                create: (_) => sl<ClientProfileCubit>()..getProfile(),
+              ),
+            ],
+            child: const MainNavigationScreen(),
+          ),
+        );
+
+      case Routes.adminMainNav:
+        return MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => sl<AdminHomeCubit>()..fetchDashboardData(),
+              ),
+              BlocProvider(create: (_) => sl<AdminOrderCubit>()),
+              BlocProvider(
+                create: (_) => sl<AdminProfileCubit>()..getProfile(),
+              ),
+            ],
+            child: const AdminMainNavigationScreen(),
+          ),
+        );
+
+      case Routes.productDetails:
+        final slug = arguments as String? ?? '';
+        return MaterialPageRoute(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider(
+                create: (_) => sl<ProductsCubit>()..getProductDetails(slug),
+              ),
+              BlocProvider(create: (_) => sl<CartCubit>()),
+            ],
+            child: ProductDetailsScreen(slug: slug),
+          ),
+        );
+
+      case Routes.cart:
+        return MaterialPageRoute(builder: (_) => const CartScreen());
+
+      case Routes.checkout:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => sl<ClientOrderCubit>(),
+            child: CheckoutScreen(),
+          ),
+        );
+
+      default:
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            body: Center(child: Text('No route defined for ${settings.name}')),
+          ),
+        );
+    }
+  }
+}
+
+-----------------------------------------
+
+--- FILE: routing/routes.dart | 2026-09-05 17:14 ---
+class Routes {
+  static const String splash = '/';
+  static const String clientLogin = '/clientLogin';
+  static const String clientRegister = '/clientRegister';
+  static const String adminLogin = '/adminLogin';
+  static const String adminRegister = '/adminRegister';
+  static const String otpVerification = '/otpVerification';
+  static const String welcomeSuccess = '/welcomeSuccess';
+  static const String clientMainNav = '/clientMainNav';
+  static const String adminMainNav = '/adminMainNav';
+  static const String productDetails = '/productDetails';
+  static const String cart = '/cart';
+  static const String checkout = '/checkout';
+}
+
+-----------------------------------------
+
+--- FILE: theme/app_colors.dart | 2026-08-29 18:36 ---
+import 'package:flutter/material.dart';
+
+class AppColors {
+  static const Color primary = Color(0xFFFF6E14); 
+  static const Color primaryLight = Color(0xFFFFF0E6);
+  static const Color background = Color(0xFFFAFAFA);
+  static const Color cardBg = Colors.white;
+  
+  static const Color textDark = Color(0xFF1E1E1E);
+  static const Color textMuted = Color(0xFF8C8C8C);
+  static const Color border = Color(0xFFE8E8E8);
+  
+  static const Color success = Color(0xFF00C853);
+  static const Color error = Color(0xFFE53935);
+}
+-----------------------------------------
+
+--- FILE: theme/app_text_styles.dart | 2026-09-11 02:12 ---
+import 'package:flutter/material.dart';
+import 'app_colors.dart';
+
+class AppTextStyles {
+  
+  static const TextStyle heading1 = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textDark,
+  );
+
+  static const TextStyle heading2 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textDark,
+  );
+
+  static const TextStyle heading3 = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textDark,
+  );
+
+  
+  static const TextStyle subtitle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textMuted,
+  );
+
+  static const TextStyle label = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textDark,
+  );
+
+  
+  static const TextStyle body = TextStyle(
+    fontSize: 14,
+    color: AppColors.textDark,
+    height: 1.4,
+  );
+
+  static const TextStyle bodyMuted = TextStyle(
+    fontSize: 13,
+    color: AppColors.textMuted,
+  );
+
+  
+  static const TextStyle button = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+  );
+
+  static const TextStyle price = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+    color: AppColors.primary,
+  );
+}
+-----------------------------------------
+
+--- FILE: theme/app_theme.dart | 2026-08-29 18:44 ---
+import 'package:flutter/material.dart';
+import 'app_colors.dart';
+
+class AppTheme {
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      scaffoldBackgroundColor: AppColors.background,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.primary,
+        primary: AppColors.primary,
+        surface: Colors.white,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: IconThemeData(color: AppColors.textDark),
+        titleTextStyle: TextStyle(
+          color: AppColors.textDark,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+-----------------------------------------
+
+--- FILE: usecase/usecase.dart | 2026-09-11 02:50 ---
+
+
+import '../errors/result.dart';
+
+abstract class UseCase<Type, Params> {
+  Future<Result<Type>> call(Params params);
+}
+
+class NoParams {
+  const NoParams();
+}
+
+-----------------------------------------
+
+--- FILE: widgets/custom_button.dart | 2026-08-29 18:37 ---
+import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
+class CustomButton extends StatelessWidget {
+  final String title;
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final Color backgroundColor;
+  final Color textColor;
+
+  const CustomButton({
+    super.key,
+    required this.title,
+    this.onPressed,
+    this.isLoading = false,
+    this.backgroundColor = AppColors.primary,
+    this.textColor = Colors.white,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: textColor,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+              )
+            : Text(
+                title,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+      ),
+    );
+  }
+}
+-----------------------------------------
+
+--- FILE: widgets/custom_text_field.dart | 2026-09-11 04:13 ---
+import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
+class CustomTextField extends StatelessWidget {
+  final String label;
+  final String hint;
+  final TextEditingController? controller;
+  final bool isPassword;
+  final TextInputType keyboardType;
+  final Widget? suffixIcon;
+  final Widget? prefixIcon;
+  final String? Function(String?)? validator;
+  final bool enabled; 
+  final bool readOnly;
+
+  const CustomTextField({
+    super.key,
+    required this.label,
+    required this.hint,
+    this.controller,
+    this.isPassword = false,
+    this.keyboardType = TextInputType.text,
+    this.suffixIcon,
+    this.prefixIcon,
+    this.validator,
+    this.enabled = true, 
+    this.readOnly = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textDark,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          obscureText: isPassword,
+          keyboardType: keyboardType,
+          validator: validator,
+          enabled: enabled, 
+          readOnly: readOnly,
+          style: TextStyle(
+            fontSize: 14,
+            color: enabled ? AppColors.textDark : AppColors.textMuted,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textMuted,
+            ),
+            prefixIcon: prefixIcon,
+            suffixIcon: suffixIcon,
+            filled: true,
+            fillColor: enabled
+                ? Colors.grey.shade50
+                : Colors.grey.shade200, 
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+-----------------------------------------
+
+--- FILE: widgets/empty_state_view.dart | 2026-09-11 02:13 ---
+import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
+class EmptyStateView extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final String? buttonText;
+  final VoidCallback? onAction;
+
+  const EmptyStateView({
+    super.key,
+    required this.title,
+    required this.description,
+    this.icon = Icons.inbox_outlined,
+    this.buttonText,
+    this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: const BoxDecoration(
+                color: AppColors.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 38, color: AppColors.primary),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textMuted,
+                height: 1.4,
+              ),
+            ),
+            if (buttonText != null && onAction != null) ...[
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: onAction,
+                child: Text(buttonText!),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+-----------------------------------------
+
+--- FILE: widgets/error_view.dart | 2026-09-11 02:12 ---
+import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
+class ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback? onRetry;
+  final IconData icon;
+
+  const ErrorView({
+    super.key,
+    required this.message,
+    this.onRetry,
+    this.icon = Icons.error_outline_rounded,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 48, color: AppColors.error),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textDark,
+                height: 1.4,
+              ),
+            ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('Retry'),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+-----------------------------------------
+
+--- FILE: widgets/loading_indicator.dart | 2026-09-11 02:12 ---
+import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+
+class LoadingIndicator extends StatelessWidget {
+  final double size;
+  final double strokeWidth;
+  final Color color;
+
+  const LoadingIndicator({
+    super.key,
+    this.size = 28.0,
+    this.strokeWidth = 2.5,
+    this.color = AppColors.primary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: CircularProgressIndicator(
+          strokeWidth: strokeWidth,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+-----------------------------------------
+

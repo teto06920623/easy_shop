@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color(0xFFFF6E14); // البرتقالي الأساسي
+  static const Color primary = Color(0xFFFF6E14); 
   static const Color primaryLight = Color(0xFFFFF0E6);
   static const Color background = Color(0xFFFAFAFA);
   static const Color cardBg = Colors.white;
